@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 3001
   bot-token: 5454236395:AAERc7VPuS8ve9tj2KbMcMGv5tk0D0jLzNE
   read-timeout: 5s
   write-timeout: 1m
