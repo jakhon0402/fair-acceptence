@@ -1,6 +1,6 @@
 server:
   port: 3001
-  bot-token: 5454236395:AAERc7VPuS8ve9tj2KbMcMGv5tk0D0jLzNE
+  bot-token: 6169555996:AAHYnN6PXThOw016LWDyBoHrKapDjM4avAY
   read-timeout: 5s
   write-timeout: 1m
   graceful-shutdown: 30s
