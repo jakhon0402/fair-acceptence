@@ -12,7 +12,7 @@ type Config struct {
 
 type ServerConfig struct {
 	Port             string        `yaml:"port"`
-	BotToken         string        `yaml:"bot-token"`
+	BotToken         string        `yaml:"botToken" json:"botToken"`
 	ReadTimeout      time.Duration `json:"read-timeout" yaml:"read-timeout"`
 	WriteTimeout     time.Duration `json:"write-timeout" yaml:"write-timeout"`
 	GracefulShutdown time.Duration `json:"graceful-shutdown" yaml:"graceful-shutdown"`

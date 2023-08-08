@@ -44,7 +44,7 @@ func NewTelegramBot(cnf *config.Config, logger *logrus.Logger, db *database.Mong
 }
 
 func (tb *TelegramBot) StartTelegramBot() {
-	bot, err := tgbotapi.NewBotAPI("5454236395:AAERc7VPuS8ve9tj2KbMcMGv5tk0D0jLzNE")
+	bot, err := tgbotapi.NewBotAPI(tb.BotToken)
 	if err != nil {
 		fmt.Println(tb.BotToken)
 		//log.Panic(err)

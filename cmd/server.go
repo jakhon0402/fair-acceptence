@@ -28,6 +28,7 @@ func RunApplication() {
 		),
 
 		fx.Invoke(func(srv *server.Server, tb *telegrambot.TelegramBot) error {
+			//logrus.Info(tb.BotToken)
 			go tb.StartTelegramBot()
 			return srv.RouteAPI()
 		}),
