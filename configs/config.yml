@@ -1,0 +1,20 @@
+server:
+  port: 8080
+  bot-token: 5454236395:AAERc7VPuS8ve9tj2KbMcMGv5tk0D0jLzNE
+  read-timeout: 5s
+  write-timeout: 1m
+  graceful-shutdown: 30s
+  cors:
+    allowAll: true
+    origin:
+      - http://localhost:3001/
+  auth:
+    jwt:
+      realm: example_realm
+      key: Gorgeous
+      timeout: 10h
+      max-refresh: 1h
+
+
+db:
+  dataSourceName: mongodb+srv://Cluster78907:dgYFr7H48ENEg46f@cluster78907.ctkwopy.mongodb.net/
