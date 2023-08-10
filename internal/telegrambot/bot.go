@@ -238,6 +238,8 @@ func (tb *TelegramBot) StartTelegramBot() {
 							}
 							coll := tb.DB.GetCollection(StudentCollection)
 
+							isRegestered := currentUser.IsRegistered
+
 							filter := bson.D{{"chatId", currentUser.ChatId}}
 							currentUser.FirstName = val.FirstName
 							currentUser.LastName = val.LastName
@@ -250,11 +252,12 @@ func (tb *TelegramBot) StartTelegramBot() {
 							coll.UpdateOne(context.Background(), filter, update)
 
 							tb.changeState(START, currentUser)
-							if currentUser.IsRegistered {
+							if isRegestered {
 								msg.Text = EditedText
 							} else {
 								msg.Text = fmt.Sprintf("🎉 Tabriklaymiz %v, %v ro'yhatdan o'tdingiz!", val.FirstName, val.LastName)
 							}
+
 							msg.ReplyMarkup = StartKeyboardsRegistered
 							break
 						}
