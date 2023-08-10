@@ -108,8 +108,8 @@ func (tb *TelegramBot) StartTelegramBot() {
 					msg.ReplyMarkup = PrevKeyboard
 
 				case PROFILE:
-					if currentUser.IsRegistered {
-						msg.Text = AlreadyRegisteredText
+					if !currentUser.IsRegistered {
+						msg.Text = PleaseRegisterText
 					} else {
 						coursesText := ""
 						for index, val := range currentUser.Courses {
@@ -126,8 +126,8 @@ func (tb *TelegramBot) StartTelegramBot() {
 					}
 
 				case EDIT_PROFILE:
-					if currentUser.IsRegistered {
-						msg.Text = AlreadyRegisteredText
+					if !currentUser.IsRegistered {
+						msg.Text = PleaseRegisterText
 					} else {
 						tb.changeState(ENTER_FIRST_NAME, currentUser)
 						msg.Text = EnterFirstnameText
