@@ -19,7 +19,16 @@ var StartKeyboardsRegistered = tgbotapi.NewReplyKeyboard(
 		tgbotapi.NewKeyboardButton(LOCATION),
 		tgbotapi.NewKeyboardButton(CONTACT),
 	),
+	tgbotapi.NewKeyboardButtonRow(
+		tgbotapi.NewKeyboardButton(PROFILE),
+	),
 )
+
+var ProfileKeyboard = tgbotapi.NewReplyKeyboard(
+	tgbotapi.NewKeyboardButtonRow(
+		tgbotapi.NewKeyboardButton(EDIT_PROFILE)),
+	tgbotapi.NewKeyboardButtonRow(
+		tgbotapi.NewKeyboardButton(PREVIOUS)))
 
 var PrevKeyboard = tgbotapi.NewReplyKeyboard(
 	tgbotapi.NewKeyboardButtonRow(

@@ -68,7 +68,6 @@ func (tb *TelegramBot) StartTelegramBot() {
 				continue
 			} // ignore any non-Message updates
 
-			logrus.Info(update.Message.Text)
 			currentUser := tb.getCurrentUser(update.Message.Chat.ID)
 
 			// Create a new MessageConfig. We don't have text yet,
@@ -107,6 +106,26 @@ func (tb *TelegramBot) StartTelegramBot() {
 				case CONTACT:
 					msg.Text = "Tel raqamlarimiz"
 					msg.ReplyMarkup = PrevKeyboard
+
+				case PROFILE:
+					coursesText := ""
+					for index, val := range currentUser.Courses {
+						if index == len(currentUser.Courses)-1 {
+							coursesText += fmt.Sprintf("%v.\n", val.Name)
+
+						} else {
+							coursesText += fmt.Sprintf("%v,\n", val.Name)
+
+						}
+					}
+					msg.Text = fmt.Sprintf("👤 Mening ma'lumotlarim:\n\nIsm: %v\nFamiliya: %v\nTelefon raqami: %v\n\n✅ Yozilgan kurslarim:\n%v", currentUser.FirstName, currentUser.LastName, currentUser.PhoneNumber, coursesText)
+					msg.ReplyMarkup = ProfileKeyboard
+
+				case EDIT_PROFILE:
+					tb.changeState(ENTER_FIRST_NAME, currentUser)
+					msg.Text = EnterFirstnameText
+					msg.ReplyMarkup = PrevKeyboard
+					usersData[update.Message.Chat.ID] = models.Student{}
 
 				case COURSES:
 					coursesText := ""
@@ -199,7 +218,6 @@ func (tb *TelegramBot) StartTelegramBot() {
 
 				}
 			} else if currentUser.State == ENTER_PHONE_NUMBER {
-				logrus.Info(update.Message.Text)
 				if len(update.Message.Text) < 3 {
 					msg.Text = InvalidPhoneNumberText
 				} else {
@@ -224,7 +242,11 @@ func (tb *TelegramBot) StartTelegramBot() {
 							coll.UpdateOne(context.Background(), filter, update)
 
 							tb.changeState(START, currentUser)
-							msg.Text = fmt.Sprintf("🎉 Tabriklaymiz %v, %v ro'yhatdan o'tdingiz!", val.FirstName, val.LastName)
+							if currentUser.IsRegistered {
+								msg.Text = EditedText
+							} else {
+								msg.Text = fmt.Sprintf("🎉 Tabriklaymiz %v, %v ro'yhatdan o'tdingiz!", val.FirstName, val.LastName)
+							}
 							msg.ReplyMarkup = StartKeyboardsRegistered
 							break
 						}
