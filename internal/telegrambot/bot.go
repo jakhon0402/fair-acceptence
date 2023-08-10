@@ -108,24 +108,32 @@ func (tb *TelegramBot) StartTelegramBot() {
 					msg.ReplyMarkup = PrevKeyboard
 
 				case PROFILE:
-					coursesText := ""
-					for index, val := range currentUser.Courses {
-						if index == len(currentUser.Courses)-1 {
-							coursesText += fmt.Sprintf("%v.\n", val.Name)
+					if currentUser.IsRegistered {
+						msg.Text = AlreadyRegisteredText
+					} else {
+						coursesText := ""
+						for index, val := range currentUser.Courses {
+							if index == len(currentUser.Courses)-1 {
+								coursesText += fmt.Sprintf("%v.\n", val.Name)
 
-						} else {
-							coursesText += fmt.Sprintf("%v,\n", val.Name)
+							} else {
+								coursesText += fmt.Sprintf("%v,\n", val.Name)
 
+							}
 						}
+						msg.Text = fmt.Sprintf("👤 Mening ma'lumotlarim:\n\nIsm: %v\nFamiliya: %v\nTelefon raqami: %v\n\n✅ Yozilgan kurslarim:\n%v", currentUser.FirstName, currentUser.LastName, currentUser.PhoneNumber, coursesText)
+						msg.ReplyMarkup = ProfileKeyboard
 					}
-					msg.Text = fmt.Sprintf("👤 Mening ma'lumotlarim:\n\nIsm: %v\nFamiliya: %v\nTelefon raqami: %v\n\n✅ Yozilgan kurslarim:\n%v", currentUser.FirstName, currentUser.LastName, currentUser.PhoneNumber, coursesText)
-					msg.ReplyMarkup = ProfileKeyboard
 
 				case EDIT_PROFILE:
-					tb.changeState(ENTER_FIRST_NAME, currentUser)
-					msg.Text = EnterFirstnameText
-					msg.ReplyMarkup = PrevKeyboard
-					usersData[update.Message.Chat.ID] = models.Student{}
+					if currentUser.IsRegistered {
+						msg.Text = AlreadyRegisteredText
+					} else {
+						tb.changeState(ENTER_FIRST_NAME, currentUser)
+						msg.Text = EnterFirstnameText
+						msg.ReplyMarkup = PrevKeyboard
+						usersData[update.Message.Chat.ID] = models.Student{}
+					}
 
 				case COURSES:
 					coursesText := ""
