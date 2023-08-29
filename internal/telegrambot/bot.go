@@ -5,11 +5,13 @@ import (
 	"fajr-acceptance/internal/config"
 	"fajr-acceptance/internal/database"
 	"fajr-acceptance/internal/models"
+	"fajr-acceptance/internal/models/courseType"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 	"time"
@@ -101,10 +103,13 @@ func (tb *TelegramBot) StartTelegramBot() {
 			if currentUser.State == START {
 				switch update.Message.Text {
 				case LOCATION:
-					msg.Text = "Lokatsiyamiz"
-					msg.ReplyMarkup = PrevKeyboard
+					location := tgbotapi.NewLocation(update.Message.Chat.ID, 38.83618780943324, 65.7821810532057)
+
+					location.ReplyMarkup = PrevKeyboard
+					bot.Send(location)
+					continue
 				case CONTACT:
-					msg.Text = "Tel raqamlarimiz"
+					msg.Text = "📞 Telefon raqam: +998976734141"
 					msg.ReplyMarkup = PrevKeyboard
 
 				case PROFILE:
@@ -114,14 +119,14 @@ func (tb *TelegramBot) StartTelegramBot() {
 						coursesText := ""
 						for index, val := range currentUser.Courses {
 							if index == len(currentUser.Courses)-1 {
-								coursesText += fmt.Sprintf("%v.\n", val.Name)
+								coursesText += fmt.Sprintf("%v (%v).\n", val.Name, courseType.CoursesNameDescription[val.Type])
 
 							} else {
-								coursesText += fmt.Sprintf("%v,\n", val.Name)
+								coursesText += fmt.Sprintf("%v (%v),\n", val.Name, courseType.CoursesNameDescription[val.Type])
 
 							}
 						}
-						msg.Text = fmt.Sprintf("👤 Mening ma'lumotlarim:\n\nIsm: %v\nFamiliya: %v\nTelefon raqami: %v\n\n✅ Yozilgan kurslarim:\n%v", currentUser.FirstName, currentUser.LastName, currentUser.PhoneNumber, coursesText)
+						msg.Text = fmt.Sprintf("👤 Mening ma'lumotlarim:\n\nIsm: %v\nFamiliya: %v\nTelefon raqami: %v\n\n✅ Yozilgan kurslarim:\n\n%v", currentUser.FirstName, currentUser.LastName, currentUser.PhoneNumber, coursesText)
 						msg.ReplyMarkup = ProfileKeyboard
 					}
 
@@ -136,35 +141,16 @@ func (tb *TelegramBot) StartTelegramBot() {
 					}
 
 				case COURSES:
-					coursesText := ""
-					msg.ReplyMarkup = PrevKeyboard
-					coursesButton := []tgbotapi.KeyboardButton{}
-
-					cursor, _ := coll.Find(context.Background(), bson.M{}, options.Find().SetSort(bson.M{"createdAt": -1}))
-
-					var courses []models.Course
-					cursor.All(context.Background(), &courses)
-
-					for index, val := range courses {
-						coursesButton = append(coursesButton, tgbotapi.NewKeyboardButton(val.Name))
-						if index == len(courses)-1 {
-							coursesText += fmt.Sprintf("%v.\n", val.Name)
-
-						} else {
-							coursesText += fmt.Sprintf("%v,\n", val.Name)
-
-						}
-					}
 					msg.ReplyMarkup = tgbotapi.NewReplyKeyboard(
 						tgbotapi.NewKeyboardButtonRow(
-							coursesButton...,
-						),
-						tgbotapi.NewKeyboardButtonRow(
-							tgbotapi.NewKeyboardButton(PREVIOUS),
-						),
-					)
+							tgbotapi.NewKeyboardButton(IT_COURSES),
+							tgbotapi.NewKeyboardButton(LANGUAGE_COURSES),
+						), tgbotapi.NewKeyboardButtonRow(
+							tgbotapi.NewKeyboardButton(ABITURIENT_COURSES),
+							tgbotapi.NewKeyboardButton(KIDS_COURSES)), tgbotapi.NewKeyboardButtonRow(
+							tgbotapi.NewKeyboardButton(PREVIOUS)))
 					tb.changeState(COURSES, currentUser)
-					msg.Text = fmt.Sprintf("💻 Bizning kurslarimiz \n\n%v\n\n✅ Kurslarimiz haqida batafsil ma'lumotni quyida menu orqali bilib olasiz!", coursesText)
+					msg.Text = fmt.Sprintf("✅ Quyidagi kurs bo'limlari orqali bizning kurslarimiz bilan tanishing va kurslarimizga yoziling!")
 
 				case REGISTER:
 					//cursor, _ := coll.Find(context.Background(), bson.M{}, options.Find().SetSort(bson.M{"createdAt": -1}))
@@ -265,21 +251,46 @@ func (tb *TelegramBot) StartTelegramBot() {
 
 				}
 			} else if currentUser.State == COURSES {
-				cursor, _ := coll.Find(context.Background(), bson.M{}, options.Find().SetSort(bson.M{"createdAt": -1}))
 
-				var courses []models.Course
-				cursor.All(context.Background(), &courses)
+				switch update.Message.Text {
+				case ALL_COURSES:
+					msg.ReplyMarkup = tgbotapi.NewReplyKeyboard(
+						tgbotapi.NewKeyboardButtonRow(
+							tgbotapi.NewKeyboardButton(IT_COURSES),
+							tgbotapi.NewKeyboardButton(LANGUAGE_COURSES),
+						), tgbotapi.NewKeyboardButtonRow(
+							tgbotapi.NewKeyboardButton(ABITURIENT_COURSES),
+							tgbotapi.NewKeyboardButton(KIDS_COURSES)), tgbotapi.NewKeyboardButtonRow(
+							tgbotapi.NewKeyboardButton(PREVIOUS)))
+					tb.changeState(COURSES, currentUser)
+					msg.Text = fmt.Sprintf("💻 Bizning kurslarimiz \n\n%v\n\n✅ Kurslarimiz haqida batafsil ma'lumotni quyida menu orqali bilib olasiz!", "coursesText")
+				case IT_COURSES:
+					GetCourse(&msg, courseType.IT, coll)
+				case LANGUAGE_COURSES:
+					GetCourse(&msg, courseType.LANGUAGES, coll)
+				case ABITURIENT_COURSES:
+					GetCourse(&msg, courseType.FOR_ABITURIENTS, coll)
+				case KIDS_COURSES:
+					GetCourse(&msg, courseType.FOR_KIDS, coll)
+				default:
+					cursor, _ := coll.Find(context.Background(), bson.M{}, options.Find().SetSort(bson.M{"createdAt": -1}))
 
-				for _, course := range courses {
-					if course.Name == update.Message.Text {
-						msg.Text = course.Description
-						msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
-							tgbotapi.NewInlineKeyboardRow(
-								tgbotapi.NewInlineKeyboardButtonData("Kursga yozilish", course.ID.Hex()),
-							),
-						)
+					var courses []models.Course
+					cursor.All(context.Background(), &courses)
+
+					for _, course := range courses {
+						if course.Name == update.Message.Text {
+							msg.Text = course.Description
+							msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
+								tgbotapi.NewInlineKeyboardRow(
+									tgbotapi.NewInlineKeyboardButtonData("Kursga yozilish", course.ID.Hex()),
+								),
+							)
+							break
+						}
 					}
 				}
+
 			}
 
 			if _, err := bot.Send(msg); err != nil {
@@ -405,4 +416,47 @@ func (tb *TelegramBot) changeState(state string, studentByChatID models.Student)
 	}
 
 	coll.UpdateOne(context.Background(), filter, update)
+}
+
+func GetCourse(msg *tgbotapi.MessageConfig, nameType courseType.CourseName, coll *mongo.Collection) {
+	coursesText := ""
+	msg.ReplyMarkup = PrevKeyboard
+	coursesButton := [][]tgbotapi.KeyboardButton{}
+
+	filter := bson.D{{"type", nameType}}
+
+	cursor, _ := coll.Find(context.Background(), filter, options.Find().SetSort(bson.M{"order": 1}))
+
+	var courses []models.Course
+	cursor.All(context.Background(), &courses)
+
+	if len(courses) == 0 {
+		msg.Text = "Kurslar mavjud emas!"
+		return
+	}
+
+	for index, val := range courses {
+
+		if index == len(courses)-1 {
+			if index%2 == 0 {
+				coursesButton = append(coursesButton, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(val.Name)))
+			}
+
+		} else {
+			if index%2 == 0 {
+				coursesButton = append(coursesButton, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(val.Name), tgbotapi.NewKeyboardButton(courses[index+1].Name)))
+			}
+
+		}
+		coursesText += fmt.Sprintf("%v\n", val.Name)
+
+	}
+	coursesButton = append(coursesButton, tgbotapi.NewKeyboardButtonRow(
+		tgbotapi.NewKeyboardButton(ALL_COURSES),
+	))
+	msg.ReplyMarkup = tgbotapi.NewReplyKeyboard(
+		coursesButton...,
+	)
+	msg.Text = fmt.Sprintf("%v \n\n%v\n\n✅ Kurslarimiz haqida batafsil ma'lumotni quyida menu orqali bilib olasiz!", courseType.CoursesNames[nameType], coursesText)
+
 }

@@ -1,5 +1,5 @@
 server:
-  port: 3001
+  port: 8080
   botToken: 6169555996:AAHYnN6PXThOw016LWDyBoHrKapDjM4avAY
 #  botToken: 5454236395:AAERc7VPuS8ve9tj2KbMcMGv5tk0D0jLzNE
   read-timeout: 5s

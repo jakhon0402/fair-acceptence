@@ -5,6 +5,7 @@ import (
 	"fajr-acceptance/internal/database"
 	"fajr-acceptance/internal/handler/apierr"
 	"fajr-acceptance/internal/models"
+	"fajr-acceptance/internal/models/courseType"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -22,12 +23,14 @@ const (
 )
 
 type CourseReq struct {
-	Name        string    `json:"name" bson:"name"`
-	Description string    `json:"description" bson:"description"`
-	LessonTime  string    `json:"lessonTime" bson:"lessonTime"`
-	Price       int       `json:"price" bson:"price"`
-	Discount    int       `json:"discount" bson:"discount"`
-	StartsDate  time.Time `json:"startsDate" bson:"startsDate"`
+	Name        string                `json:"name" bson:"name"`
+	Type        courseType.CourseName `json:"type"`
+	Order       int                   `json:"order"`
+	Description string                `json:"description" bson:"description"`
+	LessonTime  string                `json:"lessonTime" bson:"lessonTime"`
+	Price       int                   `json:"price" bson:"price"`
+	Discount    int                   `json:"discount" bson:"discount"`
+	StartsDate  time.Time             `json:"startsDate" bson:"startsDate"`
 }
 
 func NewCourseController(db *database.MongoDBClient) *CourseController {
@@ -59,6 +62,8 @@ func (cc *CourseController) AddCourse(gctx *gin.Context) (any, error) {
 	course := models.Course{
 		Name:        req.Name,
 		Description: req.Description,
+		Type:        req.Type,
+		Order:       req.Order,
 		Price:       req.Price,
 		Discount:    req.Discount,
 		LessonTime:  req.LessonTime,
@@ -90,6 +95,8 @@ func (cc *CourseController) UpdateCourse(gctx *gin.Context) (any, error) {
 	courseById.Name = req.Name
 	courseById.Description = req.Description
 	courseById.Price = req.Price
+	courseById.Type = req.Type
+	courseById.Order = req.Order
 	courseById.StartsDate = req.StartsDate
 	courseById.LessonTime = req.LessonTime
 	courseById.Discount = req.Discount

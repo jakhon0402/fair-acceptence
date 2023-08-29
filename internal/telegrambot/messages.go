@@ -1,7 +1,14 @@
 package telegrambot
 
 const (
-	COURSES      string = "🗒 Kurslar"
+	IT_COURSES         string = "🖥 IT kurslari"
+	LANGUAGE_COURSES   string = "🇬🇧 Til kurslari"
+	ABITURIENT_COURSES string = "🧮 Abituriyentlar uchun"
+	KIDS_COURSES       string = "🌈 Bolalar uchun"
+
+	COURSES     string = "🗒 Kurslar"
+	ALL_COURSES string = "⏪ Orqaga"
+
 	LOCATION     string = "📍 Bizning manzil"
 	CONTACT      string = "📞 Bog'lanish"
 	PREVIOUS     string = "⬅️ Orqaga"
